@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>클릭한 위치에 이미지 표시</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: black; /* 배경을 검은색으로 설정 */
+            overflow: hidden;
+        }
+
+        img {
+            position: absolute;
+            opacity: 0; /* 초기 투명도 */
+            transform: scale(0); /* 초기 크기 0 */
+            animation: appearAndDisappear 2s ease forwards; /* 애니메이션 */
+        }
+
+        /* 이미지가 커지면서 나타나고 점차 작아지며 사라지는 애니메이션 */
+        @keyframes appearAndDisappear {
+            0% {
+                opacity: 0;
+                transform: scale(0); /* 처음에는 크기 0 */
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1); /* 중간에서 정상 크기 */
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0); /* 마지막에는 크기 0으로 돌아가며 사라짐 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // 클릭, 터치 이벤트를 처리하는 변수
+        let isEventDisabled = false;
+
+        // 클릭이나 터치한 위치에 이미지를 생성하여 표시하는 함수
+        function displayImage(event) {
+            // 이미 이벤트가 비활성화되었으면 무시
+            if (isEventDisabled) {
+                return;
+            }
+
+            // 화면 크기 비율 계산 (전체 화면의 5/1 크기)
+            let screenWidth = window.innerWidth;
+            let screenHeight = window.innerHeight;
+            let imageFinalSize = Math.min(screenWidth, screenHeight) / 5; // 최종 이미지 크기 (화면 크기의 5분의 1)
+
+            // 클릭 위치 또는 터치 위치 가져오기
+            let x = event.clientX || event.touches[0].clientX;
+            let y = event.clientY || event.touches[0].clientY;
+
+            // 이미지 요소 생성
+            let img = document.createElement('img');
+            img.src = 'https://postfiles.pstatic.net/MjAyNDExMTRfMTg1/MDAxNzMxNTgyMzgzNTI0.Ypy8zjOKG-ktcMLeXqRrcT4nBA9FlPClB3QqNBo4MuEg.6gqs7HH1k-RbP9J5RxsvJPfEnPEUsa-7f-IrcBZ6-FQg.PNG/%EC%95%84%EA%B7%80removebg.png?type=w966'; // 이미지 URL
+            img.alt = '클릭한 위치에 이미지';
+
+            // 이미지의 크기 비율 유지 (최종 크기는 화면의 5/1 크기)
+            img.style.width = `${imageFinalSize}px`; 
+            img.style.height = 'auto'; // 이미지의 비율을 유지하여 높이는 자동으로 설정
+
+            // 이미지의 위치 설정 (클릭한 위치)
+            img.style.left = `${x - imageFinalSize / 2}px`; // 이미지의 가로 위치 (중앙 정렬)
+            img.style.top = `${y - imageFinalSize / 2}px`;  // 이미지의 세로 위치 (중앙 정렬)
+
+            // 이미지가 페이지에 삽입
+            document.body.appendChild(img);
+
+            // 2초 후에 이미지 제거
+            setTimeout(() => {
+                img.remove();
+            }, 2000); // 애니메이션 시간이 끝난 후 이미지 제거
+
+            // 클릭/터치 이벤트 비활성화
+            isEventDisabled = true;
+
+            // 1초 후에 이벤트 리스너 활성화
+            setTimeout(() => {
+                isEventDisabled = false;
+            }, 1000); // 1초 후 이벤트 활성화
+        }
+
+        // 클릭 이벤트 리스너
+        document.body.addEventListener('click', displayImage);
+
+        // 터치 이벤트 리스너 (모바일 지원)
+        document.body.addEventListener('touchstart', displayImage);
+    </script>
+</body>
+</html>
