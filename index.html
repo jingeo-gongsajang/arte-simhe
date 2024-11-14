@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>클릭한 위치에 이미지 표시</title>
+    <title>랜덤 위치에 이미지 표시</title>
     <style>
         body {
             margin: 0;
@@ -11,88 +11,133 @@
             height: 100vh;
             background-color: black; /* 배경을 검은색으로 설정 */
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         img {
             position: absolute;
-            opacity: 0; /* 초기 투명도 */
-            transform: scale(0); /* 초기 크기 0 */
-            animation: appearAndDisappear 2s ease forwards; /* 애니메이션 */
+            cursor: pointer; /* 이미지 클릭을 위한 커서 스타일 */
+            transition: all 0.3s ease; /* 클릭 시 효과 */
         }
 
-        /* 이미지가 커지면서 나타나고 점차 작아지며 사라지는 애니메이션 */
-        @keyframes appearAndDisappear {
-            0% {
+        /* 첫 번째 이미지의 페이드 인 효과 */
+        .fade-in {
+            animation: fadeIn 1s forwards;
+        }
+
+        /* 페이드 인 애니메이션 */
+        @keyframes fadeIn {
+            from {
                 opacity: 0;
-                transform: scale(0); /* 처음에는 크기 0 */
             }
-            50% {
+            to {
                 opacity: 1;
-                transform: scale(1); /* 중간에서 정상 크기 */
+            }
+        }
+
+        /* 페이드 아웃과 크기 줄이기 효과 */
+        @keyframes fadeOutAndShrink {
+            0% {
+                opacity: 1;
+                transform: scale(1);
             }
             100% {
                 opacity: 0;
-                transform: scale(0); /* 마지막에는 크기 0으로 돌아가며 사라짐 */
+                transform: scale(0.5);
             }
         }
+
     </style>
 </head>
 <body>
     <script>
-        // 클릭, 터치 이벤트를 처리하는 변수
-        let isEventDisabled = false;
+        // 이미지의 목록 (클릭 시 바뀌는 이미지들)
+        const images = [
+            'https://postfiles.pstatic.net/MjAyNDExMTRfMjU5/MDAxNzMxNTg3MDM5NDI0.UwpHUuGY5kiq2CNdZFqEPV20YQBPnYY9h-RZEApSZq0g.s-On2fzlwfX4j7k6OnKlGo_pogpr48rUFcF9G0PRS3cg.PNG/%EC%95%84%EA%B7%80lightremovebg.png?type=w966', // 첫 번째 이미지
+            'https://postfiles.pstatic.net/MjAyNDExMTRfMTMx/MDAxNzMxNTg3MDM5NDM2.0q8COoz8Tk8sU_zoWSEnBpgAYHn75Z6kQqHGM0AsDHEg.6pBRWt80j3iFBefrPu-2gj_6uS8nB5S8b-ZeLs4ulfAg.PNG/%EC%95%84%EA%B7%80faceremovebg.png?type=w966'  // 두 번째 이미지
+        ];
 
-        // 클릭이나 터치한 위치에 이미지를 생성하여 표시하는 함수
-        function displayImage(event) {
-            // 이미 이벤트가 비활성화되었으면 무시
-            if (isEventDisabled) {
-                return;
-            }
-
-            // 화면 크기 비율 계산 (전체 화면의 5/1 크기)
-            let screenWidth = window.innerWidth;
-            let screenHeight = window.innerHeight;
-            let imageFinalSize = Math.min(screenWidth, screenHeight) / 5; // 최종 이미지 크기 (화면 크기의 5분의 1)
-
-            // 클릭 위치 또는 터치 위치 가져오기
-            let x = event.clientX || event.touches[0].clientX;
-            let y = event.clientY || event.touches[0].clientY;
-
-            // 이미지 요소 생성
-            let img = document.createElement('img');
-            img.src = 'https://postfiles.pstatic.net/MjAyNDExMTRfMTg1/MDAxNzMxNTgyMzgzNTI0.Ypy8zjOKG-ktcMLeXqRrcT4nBA9FlPClB3QqNBo4MuEg.6gqs7HH1k-RbP9J5RxsvJPfEnPEUsa-7f-IrcBZ6-FQg.PNG/%EC%95%84%EA%B7%80removebg.png?type=w966'; // 이미지 URL
-            img.alt = '클릭한 위치에 이미지';
-
-            // 이미지의 크기 비율 유지 (최종 크기는 화면의 5/1 크기)
-            img.style.width = `${imageFinalSize}px`; 
-            img.style.height = 'auto'; // 이미지의 비율을 유지하여 높이는 자동으로 설정
-
-            // 이미지의 위치 설정 (클릭한 위치)
-            img.style.left = `${x - imageFinalSize / 2}px`; // 이미지의 가로 위치 (중앙 정렬)
-            img.style.top = `${y - imageFinalSize / 2}px`;  // 이미지의 세로 위치 (중앙 정렬)
-
-            // 이미지가 페이지에 삽입
-            document.body.appendChild(img);
-
-            // 2초 후에 이미지 제거
-            setTimeout(() => {
-                img.remove();
-            }, 2000); // 애니메이션 시간이 끝난 후 이미지 제거
-
-            // 클릭/터치 이벤트 비활성화
-            isEventDisabled = true;
-
-            // 1초 후에 이벤트 리스너 활성화
-            setTimeout(() => {
-                isEventDisabled = false;
-            }, 1000); // 1초 후 이벤트 활성화
+        // 화면 크기의 5분의 1 크기를 계산하는 함수
+        function getImageSize() {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const imageFinalSize = Math.min(screenWidth, screenHeight) / 5; // 화면 크기의 5분의 1
+            return imageFinalSize;
         }
 
-        // 클릭 이벤트 리스너
-        document.body.addEventListener('click', displayImage);
+        // 랜덤 위치에 이미지를 표시하는 함수
+        function createRandomImage() {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
 
-        // 터치 이벤트 리스너 (모바일 지원)
-        document.body.addEventListener('touchstart', displayImage);
+            // 첫 번째 이미지 (초기 이미지)
+            const imgSrc = images[0];
+
+            // 이미지 크기 계산
+            const imageFinalSize = getImageSize();
+
+            // 첫 번째 이미지 요소 생성
+            const img1 = document.createElement('img');
+            img1.src = imgSrc;
+            img1.alt = 'Random Image';
+            img1.style.width = `${imageFinalSize}px`; // 크기 설정
+            img1.style.height = 'auto'; // 비율 유지
+            img1.style.opacity = '0'; // 초기 상태에서 보이지 않도록 설정
+
+            // 랜덤 위치 계산
+            const x = Math.random() * (screenWidth - imageFinalSize); // 이미지 크기를 빼고 랜덤 위치 지정
+            const y = Math.random() * (screenHeight - imageFinalSize);
+
+            // 첫 번째 이미지 위치 설정
+            img1.style.left = `${x}px`;
+            img1.style.top = `${y}px`;
+
+            // 두 번째 이미지 요소 생성
+            const img2 = document.createElement('img');
+            img2.src = images[1];
+            img2.alt = 'Second Image';
+            img2.style.width = `${imageFinalSize}px`; // 크기 설정
+            img2.style.height = 'auto'; // 비율 유지
+            img2.style.opacity = '0'; // 초기 상태에서 보이지 않도록 설정
+
+            // 두 번째 이미지 위치 설정
+            img2.style.left = `${x}px`;
+            img2.style.top = `${y}px`;
+
+            // 첫 번째 이미지 페이드 인 효과 추가
+            img1.classList.add('fade-in');
+            document.body.appendChild(img1);
+
+            // 첫 번째 이미지 클릭 시 두 번째 이미지로 변경하고, 애니메이션 효과 추가
+            img1.addEventListener('click', () => {
+                // 두 번째 이미지 페이드 인 효과 추가
+                img2.classList.add('fade-in');
+                document.body.appendChild(img2);
+
+                // 1초 후 두 이미지가 함께 작아지며 페이드 아웃
+                setTimeout(() => {
+                    img1.style.animation = 'fadeOutAndShrink 1s forwards';
+                    img2.style.animation = 'fadeOutAndShrink 1s forwards';
+
+                    // 1초 후 이미지 제거
+                    setTimeout(() => {
+                        img1.remove();
+                        img2.remove();
+
+                        // 이미지가 사라진 후 다시 랜덤 위치에 이미지 표시
+                        createRandomImage();
+                    }, 1000); // 1초 후 실행
+                }, 1000); // 1초 후 실행
+            });
+        }
+
+        // 페이지 로드 시 랜덤 위치에 첫 번째 이미지 표시
+        window.onload = function() {
+            createRandomImage();
+        }
     </script>
 </body>
 </html>
+
