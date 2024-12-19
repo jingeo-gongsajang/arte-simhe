@@ -135,9 +135,16 @@
 
         // 페이지 로드 시 랜덤 위치에 첫 번째 이미지 표시
         window.onload = function() {
+            // 화면의 상단 10% 클릭 또는 터치 시 이동
+            document.body.addEventListener('click', function(event) {
+                const screenHeight = window.innerHeight;
+                if (event.clientY < screenHeight * 0.1) { // 화면 상단 10% 영역
+                    window.location.href = "https://jingeo-gongsajang.github.io/arte-ocean/"; // 해당 URL로 이동
+                }
+            });
+
             createRandomImage();
         }
     </script>
 </body>
 </html>
-
